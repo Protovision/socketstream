@@ -30,8 +30,22 @@ private:
 	std::streamsize gasize_, pasize_;
 	bool userbuf_;
 protected:
+	/*
+	 * Sets the buffer to use for the get and put areas. The size of the
+	 * get and put areas will be roughly divided equally within the size 
+	 * of the buffer specified by n. If n is 0 or 1, then the stream 
+	 * will be unbuffered. If s == nullptr, then a buffer of size n will
+	 * be allocated internally.
+	 */
 	socketbuf* setbuf(char_type* s, std::streamsize n);
+
+	/*
+	 * Writes all pending characters from the put area into the associated
+	 * socket, then clears the put area. The get area will remain
+	 * untouched.
+	 */
 	int sync();
+
 	int_type underflow();
 	int_type overflow(int_type c = traits_type::eof());
 	std::streamsize xsgetn(char_type* s, std::streamsize n);
