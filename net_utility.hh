@@ -30,6 +30,6 @@ socket_traits::socket_type make_connected_socket(int family,
 						const std::string& node,
 						const std::string& service);
 
-#include "inline/net_utility.icc"
+#include "inline/net_utility.cc"
 
 #endif

@@ -133,7 +133,7 @@ public:
  * Specializes the std::swap algorithm for socketstream.
  */
 namespace std {
-	void swap(socketstream& a, socketstream& b)
+	inline void swap(socketstream& a, socketstream& b)
 	{
 		a.swap(b);
 	}
@@ -146,7 +146,7 @@ namespace std {
  * This is an output-only I/O manipulator, it may be called with an expression
  * out << crlf for any out of type std::ostream.
  */
-std::ostream& crlf(std::ostream& os)
+inline std::ostream& crlf(std::ostream& os)
 {
 	os.put('\r');
 	os.put('\n');

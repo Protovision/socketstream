@@ -26,9 +26,9 @@
  */
 
 #if defined(__linux__) || defined(__APPLE__)
-#include "inline/unix_socket_traits.icc"
+#include "inline/unix_socket_traits.cc"
 #elif defined(_WIN32)
-#include "inline/win32_socket_traits.icc"
+#include "inline/win32_socket_traits.cc"
 #endif
 
 #endif

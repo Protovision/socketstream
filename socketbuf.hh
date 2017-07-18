@@ -143,12 +143,12 @@ public:
 
 /* Specializes the std::swap algorithm for socketbuf */
 namespace std {
-	void swap(socketbuf& a, socketbuf& b)
+	inline void swap(socketbuf& a, socketbuf& b)
 	{
 		a.swap(b);
 	}
 };
 
-#include "inline/socketbuf.icc"
+#include "inline/socketbuf.cc"
 
 #endif
