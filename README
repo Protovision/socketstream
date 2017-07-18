@@ -9,3 +9,5 @@ hh files.
 
 net_utility.hh includes a function make_connected_socket for creating 
 and connecting a native socket handle. 
+
+See example.cc for an example that makes a simple HTTP request.
