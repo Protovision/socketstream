@@ -24,16 +24,22 @@ inline socketbuf::socketbuf(socketbuf&& other) :
 	swap(other);
 }
 
-inline socketbuf& socketbuf::operator=(socketbuf&& other)
+inline void socketbuf::destroy_buffer()
 {
-	setg(nullptr, nullptr, nullptr);
-	setp(nullptr, nullptr);
-	imbue(std::locale());
-	socket_ = socket_traits::invalid();
+	if (buf_ != nullptr && !userbuf_)
+		delete[] buf_;
 	buf_ = nullptr;
 	gasize_ = 0;
 	pasize_ = 0;
 	userbuf_ = false;
+	setg(nullptr, nullptr, nullptr);
+	setp(nullptr, nullptr);
+}
+
+inline socketbuf& socketbuf::operator=(socketbuf&& other)
+{
+	close();
+	destroy_buffer();
 	swap(other);
 	return *this;
 }
@@ -51,11 +57,7 @@ inline void socketbuf::swap(socketbuf& other)
 inline socketbuf::~socketbuf()
 {
 	close();
-	if (buf_ != nullptr && !userbuf_)
-		delete[] buf_;
-	buf_ = nullptr;
-	gasize_ = 0;
-	pasize_ = 0;
+	destroy_buffer();
 }
 
 inline socketbuf* socketbuf::setbuf(char_type* s, std::streamsize n)

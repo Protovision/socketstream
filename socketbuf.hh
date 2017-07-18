@@ -32,6 +32,8 @@ private:
 	char_type* buf_;
 	std::streamsize gasize_, pasize_;
 	bool userbuf_;
+
+	void destroy_buffer();
 protected:
 	/*
 	 * Sets the buffer to use for the get and put areas. The size of the
