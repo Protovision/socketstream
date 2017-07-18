@@ -53,7 +53,22 @@ protected:
 
 	int_type underflow();
 	int_type overflow(int_type c = traits_type::eof());
+
+	/*
+	 * Reads any available characters from the get area into the buffer s, 
+	 * then reads directly from the underlying socket into the buffer s.
+	 * Does not read more than n characters. Returns the number of 
+	 * characters succesfully read.
+	 */
 	std::streamsize xsgetn(char_type* s, std::streamsize n);
+
+	/*
+	 * Writes n characters from buffer s into the stream. If the buffer is
+	 * small enough, it is pushed into the put area; otherwise, calls sync()
+	 * and writes the buffer directly to the underlying socket.
+	 * Returns the number of characters from s that were successfully
+	 * written.
+	 */
 	std::streamsize xsputn(const char_type* s, std::streamsize n);
 public:
 

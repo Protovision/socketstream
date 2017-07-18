@@ -144,10 +144,9 @@ inline std::streamsize socketbuf::xsputn(const char_type* s, std::streamsize n)
 		pbump(n);
 		result = n;
 	} else {
-		pending = pptr() - pbase();
-		result = (socket_traits::write(socket_, pbase(), pending) <
-					pending || socket_traits::write(
-					socket_, s, n) < n) ? -1 : 0;
+		sync();
+		result = socket_traits::write(socket_, s, n);
+		if (result < 0) result = 0;
 	}
 	return result;
 }
