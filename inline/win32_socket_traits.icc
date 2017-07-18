@@ -29,6 +29,6 @@ struct socket_traits {
 
 	static int close(socket_type socket)
 	{
-		::closesocket(socket);
+		return (::closesocket(socket) == 0) ? 0 : -1;
 	}
 };
