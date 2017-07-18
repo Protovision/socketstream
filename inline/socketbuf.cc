@@ -24,6 +24,17 @@ inline socketbuf::socketbuf(socketbuf&& other) :
 	swap(other);
 }
 
+inline void socketbuf::create_buffer()
+{
+	if (buf_ == nullptr) {
+		setbuf(nullptr, BUFSIZ);
+	} else {
+		setg(buf_, buf_, buf_);
+		setp(buf_ + gasize_, buf_ + gasize_ + pasize_);
+	}
+}
+
+
 inline void socketbuf::destroy_buffer()
 {
 	if (buf_ != nullptr && !userbuf_)
@@ -91,7 +102,7 @@ inline socketbuf::int_type socketbuf::overflow(int_type c)
 	std::streamsize put, pending;
 
 	if (!valid()) return result;
-	if (pptr() == nullptr) setbuf(nullptr, BUFSIZ);
+	if (pptr() == nullptr) create_buffer();
 	if (pptr() < epptr() && c != result) return sputc(c);
 	if (pbase() == epptr()) {
 		if (c == result) {
@@ -123,7 +134,7 @@ inline socketbuf::int_type socketbuf::underflow()
 	std::streamsize got;
 
 	if (!valid()) return result;
-	if (gptr() == nullptr) setbuf(nullptr, BUFSIZ);
+	if (gptr() == nullptr) create_buffer();
 	if (gptr() < egptr()) return *gptr();
 	got = socket_traits::read(socket_, eback(), gasize_);
 	if (got > 0) {
@@ -138,7 +149,7 @@ inline std::streamsize socketbuf::xsputn(const char_type* s, std::streamsize n)
 	std::streamsize result{-1}, pending;
 
 	if (!valid()) return -1;
-	if (pptr() == nullptr) setbuf(nullptr, BUFSIZ);
+	if (pptr() == nullptr) create_buffer();
 	if (pptr() + n < epptr()) {
 		std::copy_n(s, n, pptr());
 		pbump(n);
@@ -156,7 +167,7 @@ inline std::streamsize socketbuf::xsgetn(char_type* s, std::streamsize n)
 	std::streamsize avail, got, result;
 
 	if (!valid()) return -1;
-	if (gptr() == nullptr) setbuf(nullptr, BUFSIZ);
+	if (gptr() == nullptr) create_buffer();
 	avail = egptr() - gptr();
 	if (avail >= n) {
 		std::copy_n(gptr(), n, s);
@@ -180,7 +191,8 @@ inline socketbuf* socketbuf::close()
 	if (sync() == -1) result = nullptr;
 	if (socket_traits::close(socket_) == -1) result = nullptr;
 	socket_ = socket_traits::invalid();
-	purge();
+	setg(nullptr, nullptr, nullptr);
+	setp(nullptr, nullptr);
 	return result;
 }
 

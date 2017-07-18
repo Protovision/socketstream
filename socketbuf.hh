@@ -33,6 +33,7 @@ private:
 	std::streamsize gasize_, pasize_;
 	bool userbuf_;
 
+	void create_buffer();
 	void destroy_buffer();
 protected:
 	/*
