@@ -16,6 +16,9 @@
  *
  * The functions underflow() and overflow()/sync() perform the actual I/O 
  * between the socket and the get and put areas of the buffer.
+ *
+ * Reads and writes can be used interchangeably on a socketbuf without any 
+ * intervening calls to sync().
  */
 class socketbuf : public std::streambuf {
 public:
