@@ -1,3 +1,9 @@
+/*
+ * socketbuf.icc
+ * Author: Mark Swoope
+ * Date: Jul 2017
+ */
+
 socketbuf::socketbuf() :
 	std::streambuf(),
 	socket_(socket_traits::invalid()),
@@ -44,6 +50,7 @@ void socketbuf::swap(socketbuf& other)
 
 socketbuf::~socketbuf()
 {
+	close();
 	if (buf_ != nullptr && !userbuf_)
 		delete[] buf_;
 	buf_ = nullptr;

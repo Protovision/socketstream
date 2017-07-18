@@ -1,11 +1,28 @@
+/*
+ * socketbuf.hh
+ * Author: Mark Swoope
+ * Date: July 2017
+ */
 #ifndef SOCKETBUF_HH
 #define SOCKETBUF_HH
 #include "socket_traits.hh"
 #include <streambuf>
 #include <algorithm>
 
+/*
+ * socketbuf is a std::streambuf whose associated character sequence is a 
+ * socket. Both the input sequence and output sequence are associated with 
+ * the same socket.
+ *
+ * The functions underflow() and overflow()/sync() perform the actual I/O 
+ * between the socket and the get and put areas of the buffer.
+ */
 class socketbuf : public std::streambuf {
 public:
+	/*
+	 * The member type socket_type shall be an alias for the OS-specific
+	 * native handle to a socket.
+	 */
 	using socket_type = socket_traits::socket_type;
 private:
 	socket_type socket_;
@@ -20,20 +37,55 @@ protected:
 	std::streamsize xsgetn(char_type* s, std::streamsize n);
 	std::streamsize xsputn(const char_type* s, std::streamsize n);
 public:
-	socketbuf();
-	socketbuf(const socketbuf&) = delete;
-	socketbuf(socketbuf&& other);
-	virtual ~socketbuf();
-	socketbuf& operator=(const socketbuf&) = delete;
-	socketbuf& operator=(socketbuf&&);
 
+	/*
+	 * Default constructor. All members are set to zero and the 
+	 * base class is default constructed. After default construction, 
+	 * socketbuf is not associated with a socket and valid() returns 
+	 * false.
+	 */
+	socketbuf();
+
+	/* Cannot be copy-constructed */
+	socketbuf(const socketbuf&) = delete;
+
+	/*
+	 * Move constructor. Moves the base class state and member state 
+	 * from other into *this. After the move, other will be left in the
+	 * default state.
+	 */
+	socketbuf(socketbuf&& other);
+
+	/*
+	 * Calls close() and destructs all socketbuf members.
+	 */
+	virtual ~socketbuf();
+
+	/* Cannot be copy-assigned */
+	socketbuf& operator=(const socketbuf&) = delete;
+
+	/* Calls close() and moves other into *this */
+	socketbuf& operator=(socketbuf&& other);
+
+	/*
+	 * Calls sync(), closes the associated socket, and clears the get and
+	 * put areas. Returns *this on success or nullptr on failure. 
+	 */
 	socketbuf* close();
-	
+
+	/*
+	 * Returns the number of characters in the put area, waiting to be 
+	 * written to the associated socket.
+	 */
 	std::streamsize out_pending() const
 	{
 		return (pptr() - pbase());
 	}
 
+	/*
+	 * Clears the get area and/or put area base on the value of 
+	 * which.
+	 */
 	void purge(std::ios_base::openmode which =
 			std::ios_base::in | std::ios_base::out)
 	{
@@ -43,21 +95,36 @@ public:
 			setp(pbase(), epptr());
 	}
 
+	/*
+	 * Associates an open socket with this socketbuf. 
+	 * Returns *this on success or nullptr on failure.
+	 */
 	socketbuf* socket(socket_type socket);
 
+	/*
+	 * Returns the underlying native socket handle.
+	 */
 	socket_type socket() const
 	{
 		return socket_;
 	}
 
+	/*
+	 * Exchanges this socketbuf with another. The states of the base 
+	 * classes are swapped as well as the socketbuf member states.
+	 */
 	void swap(socketbuf& other);
 
+	/*
+	 * Returns true if this socketbuf is associated with an open socket.
+	 */
 	bool valid() const
 	{
 		return (socket_ != socket_traits::invalid());
 	}
 };
 
+/* Specializes the std::swap algorithm for socketbuf */
 namespace std {
 	void swap(socketbuf& a, socketbuf& b)
 	{
