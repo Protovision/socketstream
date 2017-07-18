@@ -81,7 +81,7 @@ inline socketbuf* socketbuf::setbuf(char_type* s, std::streamsize n)
 		buf_ = new char_type[n];
 		userbuf_ = false;
 	}
-	auto d{std::div(n, std::streamsize(2))};
+	auto d = std::div(n, std::streamsize(2));
 	gasize_ = d.quot + d.rem;
 	pasize_ = d.quot;
 	setg(buf_, buf_, buf_);

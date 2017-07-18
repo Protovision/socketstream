@@ -8,6 +8,7 @@
 #include "socket_traits.hh"
 #include <streambuf>
 #include <algorithm>
+#include <cstdlib>
 
 /*
  * socketbuf is a std::streambuf whose associated character sequence is a 
