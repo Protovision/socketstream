@@ -18,9 +18,9 @@ int main()
 		"Host: www.google.com" << crlf <<
 		"Connection: Close" << crlf <<
 		crlf;
-	while (getline(ss, line) && line != "\r") {
-		line.pop_back();
+	while (getline(ss, line, '\r') && !line.empty()) {
 		cout << line << endl;
+		ss.ignore();
 	}
 	sockets_quit();
 	return 0;
