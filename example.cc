@@ -22,6 +22,7 @@ int main()
 		cout << line << endl;
 		ss.ignore();
 	}
+	ss.close();
 	sockets_quit();
 	return 0;
 }
