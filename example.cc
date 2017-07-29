@@ -1,28 +1,24 @@
 #include "socketstream.hh"
-#include "net_utility.hh"
 #include <iostream>
 #include <string>
-using namespace std;
+#include <memory>
 
 int main()
 {
-	string line;
-	socketstream ss;
+	swoope::socketstream client;
+	std::string line;
 
-	sockets_init();
-	ss.socket(make_connected_socket(AF_UNSPEC, SOCK_STREAM, IPPROTO_TCP,
-						"www.google.com", "80"));
-	if (!ss) return 1;
-	ss <<
-		"GET / HTTP/1.1" << crlf <<
-		"Host: www.google.com" << crlf <<
-		"Connection: Close" << crlf <<
-		crlf;
-	while (getline(ss, line, '\r') && !line.empty()) {
-		cout << line << endl;
-		ss.ignore();
+	client.open("www.google.com", "80");
+	if (!client) return 1;
+	client.unsetf(std::ios_base::unitbuf);
+	client <<
+		"HEAD / HTTP/1.1\r\n" <<
+		"Host: www.google.com\r\n\r\n";
+	client.flush();
+	client.shutdown(swoope::socketstream::out);
+	while (std::getline(client, line)) {
+		if (line.back() == '\r') line.pop_back();
+		std::cout << line << std::endl;
 	}
-	ss.close();
-	sockets_quit();
 	return 0;
 }

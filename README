@@ -1,13 +1,18 @@
-socketstream is a minimal and lightweight header-only library. It is 
-cross platform between UNIX and Windows.
+socketstream is a header-only library for socket I/O.
 
-socketstream allows you to create an std::iostream-derived object from an
-existing native socket handle. That's about it.
+The following classes are defined:
 
-Include socketstream.hh to start using. Documentation is embedded in the 
-hh files.
+	swoope::socketbuf:
+		An std::streambuf derived class that implements a raw socket
+		device.
 
-net_utility.hh includes a function make_connected_socket for creating 
-and connecting a native socket handle. 
+	swoope::socketstream: 
+		An std::iostream derived class that implements high-level 
+		stream input/output on a swoope::socketbuf.
+
+socketstream works with POSIX and Windows.
 
 See example.cc for an example that makes a simple HTTP request.
+
+Author: Mark Swoope
+Date: July 2017
