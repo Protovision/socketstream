@@ -35,7 +35,7 @@ namespace swoope {
 		{
 			using std::swap;
 			addrinfo *ai, hints{};
-			socket_type socket{}, result{std::move(invalid())};
+			socket_type result{std::move(invalid())};
 
 			hints.ai_family = AF_UNSPEC;
 			hints.ai_socktype = SOCK_STREAM;
@@ -43,8 +43,9 @@ namespace swoope {
 			if (::getaddrinfo(host.c_str(), service.c_str(),
 							&hints, &ai) != 0)
 				return std::move(result);
-			socket = ::socket(ai->ai_family, ai->ai_socktype,
-							ai->ai_protocol);
+			socket_type socket{std::move(::socket(ai->ai_family,
+							ai->ai_socktype,
+							ai->ai_protocol))};
 			if (socket != result && ::connect(socket, ai->ai_addr,
 							ai->ai_addrlen) == 0)
 				swap(result, socket);
