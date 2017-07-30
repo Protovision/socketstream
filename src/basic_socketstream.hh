@@ -14,22 +14,20 @@ namespace swoope {
 
 	template <class SocketTraits>
 	class basic_socketstream :
-	public std::basic_iostream<typename basic_socketbuf<SocketTraits>::
-								char_type> {
+	public  std::iostream {
 	public:
 		typedef basic_socketbuf<SocketTraits> __socketbuf_type;
-		typedef std::basic_iostream<typename __socketbuf_type::
-						char_type> __iostream_type;
+		typedef std::iostream __iostream_type;
 
 		typedef typename __socketbuf_type::socket_type socket_type;
 		typedef typename __socketbuf_type::socket_traits_type 
 						socket_traits_type;
 
-		using typename __iostream_type::char_type;
-		using typename __iostream_type::traits_type;
-		using typename __iostream_type::int_type;
-		using typename __iostream_type::pos_type;
-		using typename __iostream_type::off_type;
+		typedef char char_type;
+		typedef std::char_traits<char> traits_type;
+		typedef typename traits_type::int_type int_type;
+		typedef typename traits_type::pos_type pos_type;
+		typedef typename traits_type::off_type off_type;
 
 		basic_socketstream() :
 			__iostream_type(std::addressof(buf)),

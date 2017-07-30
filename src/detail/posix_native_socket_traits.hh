@@ -33,6 +33,7 @@ namespace swoope {
 		static socket_type open(const std::string& host,
 					const std::string& service)
 		{
+			using std::swap;
 			addrinfo *ai, hints{};
 			socket_type socket{}, result{std::move(invalid())};
 
@@ -46,7 +47,7 @@ namespace swoope {
 							ai->ai_protocol);
 			if (socket != result && ::connect(socket, ai->ai_addr,
 							ai->ai_addrlen) == 0)
-				result = std::move(socket);
+				swap(result, socket);
 			::freeaddrinfo(ai);
 			return std::move(result);
 		}

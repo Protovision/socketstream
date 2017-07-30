@@ -17,18 +17,14 @@ namespace swoope {
 
 	template <class SocketTraits>
 	struct basic_socketbuf_base {
-		typedef SocketTraits socket_traits_type;
-		typedef typename socket_traits_type::socket_type socket_type;
-		typedef char char_type;
-
 		/* Socket handle */
-		socket_type socket;
+		typename SocketTraits::socket_type socket;
 
 		/* Buffer used for unbuffered I/O */
-		char_type buf[1];
+		char buf[1];
 
 		/* Start of buffer */
-		std::shared_ptr<char_type> base;
+		std::shared_ptr<char> base;
 
 		std::streamsize
 			gasize, /* get area size */
@@ -52,23 +48,21 @@ namespace swoope {
 
 	template <class SocketTraits>
 	class basic_socketbuf :
-	public std::basic_streambuf< typename basic_socketbuf_base<
-					SocketTraits>::char_type >,
+	public std::streambuf,
 	private basic_socketbuf_base<SocketTraits> {
 	public:
 		typedef basic_socketbuf_base<SocketTraits>
 					__socketbuf_base_type;
-		typedef std::basic_streambuf<typename __socketbuf_base_type::
-						char_type> __streambuf_type;
+		typedef std::streambuf __streambuf_type;
+	
+		typedef SocketTraits socket_traits_type;
+		typedef typename socket_traits_type::socket_type socket_type;
 
-		using typename __socketbuf_base_type::socket_type;
-		using typename __socketbuf_base_type::socket_traits_type;
-
-		using typename __streambuf_type::char_type;
-		using typename __streambuf_type::traits_type;
-		using typename __streambuf_type::int_type;
-		using typename __streambuf_type::pos_type;
-		using typename __streambuf_type::off_type;
+		typedef char char_type;
+		typedef std::char_traits<char_type> traits_type;
+		typedef typename traits_type::int_type int_type;
+		typedef typename traits_type::pos_type pos_type;
+		typedef typename traits_type::off_type off_type;
 
 		basic_socketbuf();
 		basic_socketbuf(basic_socketbuf&& rhs);

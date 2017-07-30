@@ -368,7 +368,7 @@ namespace swoope {
 	template <class SocketTraits>
 	basic_socketbuf_base<SocketTraits>::
 	basic_socketbuf_base() :
-	socket(std::move(socket_traits_type::invalid())),
+	socket(std::move(SocketTraits::invalid())),
 	buf(),
 	base(nullptr),
 	gasize(0),
