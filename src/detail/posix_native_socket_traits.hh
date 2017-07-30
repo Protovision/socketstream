@@ -27,50 +27,50 @@ namespace swoope {
 
 		static socket_type invalid()
 		{
-			return -1;
+			return std::move(-1);
 		}
 
 		static socket_type open(const std::string& host,
 					const std::string& service)
 		{
 			addrinfo *ai, hints{};
-			socket_type socket, result{invalid()};
+			socket_type socket{}, result{std::move(invalid())};
 
 			hints.ai_family = AF_UNSPEC;
 			hints.ai_socktype = SOCK_STREAM;
 			hints.ai_protocol = IPPROTO_TCP;
 			if (::getaddrinfo(host.c_str(), service.c_str(),
 							&hints, &ai) != 0)
-				return result;
+				return std::move(result);
 			socket = ::socket(ai->ai_family, ai->ai_socktype,
 							ai->ai_protocol);
 			if (socket != result && ::connect(socket, ai->ai_addr,
 							ai->ai_addrlen) == 0)
-				result = socket;
+				result = std::move(socket);
 			::freeaddrinfo(ai);
-			return result;
+			return std::move(result);
 		}
 
-		static std::streamsize read(socket_type socket,
+		static std::streamsize read(socket_type& socket,
 						void* buf,
 						std::streamsize n)
 		{
 			return ::recv(socket, buf, n, 0);
 		}
 
-		static std::streamsize write(socket_type socket,
+		static std::streamsize write(socket_type& socket,
 						const void* buf,
 						std::streamsize n)
 		{
 			return ::send(socket, buf, n, 0);
 		}
 
-		static int shutdown(socket_type socket, shutdown_mode how)
+		static int shutdown(socket_type& socket, shutdown_mode how)
 		{
 			return ::shutdown(socket, (int)how);
 		}
 
-		static int close(socket_type socket)
+		static int close(socket_type& socket)
 		{
 			return ::close(socket);
 		}

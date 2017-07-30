@@ -13,24 +13,37 @@
 namespace swoope {
 
 	template <class SocketTraits>
-	class basic_socketstream : public std::iostream {
+	class basic_socketstream :
+	public std::basic_iostream<typename basic_socketbuf<SocketTraits>::
+								char_type> {
 	public:
-		typedef SocketTraits socket_traits;
-		typedef typename socket_traits::socket_type socket_type;
+		typedef basic_socketbuf<SocketTraits> __socketbuf_type;
+		typedef std::basic_iostream<typename __socketbuf_type::
+						char_type> __iostream_type;
+
+		typedef typename __socketbuf_type::socket_type socket_type;
+		typedef typename __socketbuf_type::socket_traits_type 
+						socket_traits_type;
+
+		using typename __iostream_type::char_type;
+		using typename __iostream_type::traits_type;
+		using typename __iostream_type::int_type;
+		using typename __iostream_type::pos_type;
+		using typename __iostream_type::off_type;
 
 		basic_socketstream() :
-			std::iostream(std::addressof(buf_)),
-			buf_()
+			__iostream_type(std::addressof(buf)),
+			buf()
 		{
 		}
 
-		explicit basic_socketstream(socket_type s,
+		explicit basic_socketstream(socket_type&& s,
 				std::ios_base::openmode mode =
 				std::ios_base::in | std::ios_base::out) :
-			std::iostream(std::addressof(buf_)),
-			buf_()
+			__iostream_type(std::addressof(buf)),
+			buf()
 		{
-			open(s, mode);
+			open(std::move(s), mode);
 		}
 
 		explicit basic_socketstream(
@@ -38,8 +51,8 @@ namespace swoope {
 				const std::string& service,
 				std::ios_base::openmode mode =
 				std::ios_base::in | std::ios_base::out) :
-			std::iostream(std::addressof(buf_)),
-			buf_()
+			__iostream_type(std::addressof(buf)),
+			buf()
 		{
 			open(host, service, mode);
 		}
@@ -47,8 +60,8 @@ namespace swoope {
 		basic_socketstream(const basic_socketstream&) = delete;
 
 		basic_socketstream(basic_socketstream&& rhs) :
-			std::iostream(std::addressof(buf_)),
-			buf_(std::move(rhs.buf_))
+			__iostream_type(std::addressof(buf)),
+			buf(std::move(rhs.buf))
 		{
 		}
 
@@ -59,22 +72,22 @@ namespace swoope {
 
 		basic_socketstream& operator=(basic_socketstream&& rhs)
 		{
-			std::iostream::move(rhs);
-			buf_ = std::move(rhs.buf_);
-			set_rdbuf(std::addressof(buf_));
+			this->__iostream_type::move(rhs);
+			buf = std::move(rhs.buf);
+			this->set_rdbuf(std::addressof(buf));
 			return *this;
 		}
 
 		void swap(basic_socketstream& rhs)
 		{
-			std::iostream::swap(rhs);
-			buf_.swap(rhs.buf_);
+			this->__iostream_type::swap(rhs);
+			buf.swap(rhs.buf);
 		}
 
-		basic_socketbuf<socket_traits>* rdbuf() const
+		__socketbuf_type* rdbuf() const
 		{
-			return const_cast< basic_socketbuf<socket_traits>* >(
-							std::addressof(buf_));
+			return const_cast<__socketbuf_type*>(
+					std::addressof(buf));
 		}
 
 		bool is_open() const
@@ -82,13 +95,13 @@ namespace swoope {
 			return rdbuf()->is_open();
 		}
 
-		void open(socket_type s, std::ios_base::openmode mode =
-				std::ios_base::in | std::ios_base::out)
+		void open(socket_type&& s, std::ios_base::openmode mode =
+					std::ios_base::in | std::ios_base::out)
 		{
-			if (rdbuf()->open(s, mode) == nullptr)
-				setstate(failbit);
+			if (rdbuf()->open(std::move(s), mode) == nullptr)
+				this->setstate(std::ios_base::failbit);
 			else
-				clear();
+				this->clear();
 		}
 
 		void open(const std::string& host, const std::string& service,
@@ -96,30 +109,25 @@ namespace swoope {
 					std::ios_base::in | std::ios_base::out)
 		{
 			if (rdbuf()->open(host, service, mode) == nullptr)
-				setstate(failbit);
+				this->setstate(std::ios_base::failbit);
 			else
-				clear();
+				this->clear();
 		}
 
 		void shutdown(std::ios_base::openmode how)
 		{
 			if (rdbuf()->shutdown(how) == nullptr)
-				setstate(failbit);
+				this->setstate(std::ios_base::failbit);
 		}
 
 		void close()
 		{
 			if (rdbuf()->close() == nullptr)
-				setstate(failbit);
-		}
-
-		socket_type socket()
-		{
-			return rdbuf()->socket();
+				this->setstate(std::ios_base::failbit);
 		}
 
 	private:
-		basic_socketbuf<socket_traits> buf_;
+		__socketbuf_type buf;
 	};
 
 	template <class SocketTraits>
