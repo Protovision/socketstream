@@ -62,7 +62,7 @@ namespace swoope {
 						const void* buf,
 						std::streamsize n)
 		{
-			return ::send(socket, buf, n, MSG_NOSIGNAL);
+			return ::send(socket, buf, n, 0);
 		}
 
 		static int shutdown(socket_type socket, shutdown_mode how)

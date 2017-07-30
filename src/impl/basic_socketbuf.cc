@@ -7,15 +7,14 @@
 namespace swoope {
 
 	template <class SocketTraits>
-	inline basic_socketbuf<SocketTraits>::basic_socketbuf() :
+	basic_socketbuf<SocketTraits>::basic_socketbuf() :
 		std::streambuf(),
 		socketbuf_base()
 	{
 	}
 
 	template <class SocketTraits>
-	inline
-	basic_socketbuf<SocketTraits>::basic_socketbuf(basic_socketbuf&& rhs) :
+		basic_socketbuf<SocketTraits>::basic_socketbuf(basic_socketbuf&& rhs) :
 		std::streambuf(),
 		socketbuf_base()
 	{
@@ -23,8 +22,7 @@ namespace swoope {
 	}
 
 	template <class SocketTraits>
-	inline
-	basic_socketbuf<SocketTraits>::~basic_socketbuf()
+		basic_socketbuf<SocketTraits>::~basic_socketbuf()
 	{
 		try {
 			close(); 
@@ -32,7 +30,7 @@ namespace swoope {
 	}
 
 	template <class SocketTraits>
-	inline basic_socketbuf<SocketTraits>&
+	basic_socketbuf<SocketTraits>&
 	basic_socketbuf<SocketTraits>::operator=(basic_socketbuf&& rhs)
 	{
 		basic_socketbuf temp{*this};
@@ -45,7 +43,7 @@ namespace swoope {
 	}
 
 	template <class SocketTraits>
-	inline void 
+	void 
 	basic_socketbuf<SocketTraits>::swap(basic_socketbuf& rhs)
 	{
 		std::streambuf::swap(rhs);
@@ -53,14 +51,14 @@ namespace swoope {
 	}
 
 	template <class SocketTraits>
-	inline bool
+	bool
 	basic_socketbuf<SocketTraits>::is_open() const
 	{
 		return (socket_ != socket_traits::invalid());
 	}
 
 	template <class SocketTraits>
-	inline basic_socketbuf<SocketTraits>*
+	basic_socketbuf<SocketTraits>*
 	basic_socketbuf<SocketTraits>::open(socket_type socket,
 						std::ios_base::openmode mode)
 	{
@@ -72,7 +70,7 @@ namespace swoope {
 	}
 
 	template <class SocketTraits>
-	inline basic_socketbuf<SocketTraits>*
+	basic_socketbuf<SocketTraits>*
 	basic_socketbuf<SocketTraits>::open(const std::string& host,
 						const std::string& service,
 						std::ios_base::openmode mode)
@@ -89,7 +87,7 @@ namespace swoope {
 	}
 
 	template <class SocketTraits>
-	inline basic_socketbuf<SocketTraits>*
+	basic_socketbuf<SocketTraits>*
 	basic_socketbuf<SocketTraits>::shutdown(std::ios_base::openmode m)
 	{
 		typedef typename socket_traits::shutdown_mode shutdown_mode;
@@ -118,7 +116,7 @@ namespace swoope {
 	}
 
 	template <class SocketTraits>
-	inline basic_socketbuf<SocketTraits>*
+	basic_socketbuf<SocketTraits>*
 	basic_socketbuf<SocketTraits>::close()
 	{
 		basic_socketbuf* result{this};
@@ -134,14 +132,14 @@ namespace swoope {
 	}
 
 	template <class SocketTraits>
-	inline typename basic_socketbuf<SocketTraits>::socket_type
+	typename basic_socketbuf<SocketTraits>::socket_type
 	basic_socketbuf<SocketTraits>::socket()
 	{
 		return socket_;
 	}
 
 	template <class SocketTraits>
-	inline basic_socketbuf<SocketTraits>*
+	basic_socketbuf<SocketTraits>*
 	basic_socketbuf<SocketTraits>::setbuf(char_type* s, std::streamsize n)
 	{
 		auto nop_deleter = [](char_type*){};
@@ -167,7 +165,7 @@ namespace swoope {
 	}
 
 	template <class SocketTraits>
-	inline int
+	int
 	basic_socketbuf<SocketTraits>::sync()
 	{
 		int_type eof{traits_type::eof()};
@@ -179,7 +177,7 @@ namespace swoope {
 	}
 
 	template <class SocketTraits>
-	inline std::streamsize
+	std::streamsize
 	basic_socketbuf<SocketTraits>::xsgetn(char_type* s, std::streamsize n)
 	{
 		
@@ -202,7 +200,7 @@ namespace swoope {
 	}
 
 	template <class SocketTraits>
-	inline typename basic_socketbuf<SocketTraits>::int_type
+	typename basic_socketbuf<SocketTraits>::int_type
 	basic_socketbuf<SocketTraits>::underflow()
 	{
 		int_type result{traits_type::eof()};
@@ -220,7 +218,7 @@ namespace swoope {
 	}
 
 	template <class SocketTraits>
-	inline std::streamsize
+	std::streamsize
 	basic_socketbuf<SocketTraits>::xsputn(const char_type* s,
 						std::streamsize n)
 	{
@@ -253,7 +251,7 @@ namespace swoope {
 	}
 
 	template <class SocketTraits>
-	inline typename basic_socketbuf<SocketTraits>::int_type
+	typename basic_socketbuf<SocketTraits>::int_type
 	basic_socketbuf<SocketTraits>::overflow(int_type c)
 	{
 		int_type result{traits_type::eof()};
@@ -300,7 +298,7 @@ namespace swoope {
 	}
 
 	template <class SocketTraits>
-	inline void
+	void
 	basic_socketbuf<SocketTraits>::init_io()
 	{
 		char_type *gbase, *pbase;
@@ -316,7 +314,7 @@ namespace swoope {
 	}
 
 	template <class SocketTraits>
-	inline std::streamsize
+	std::streamsize
 	basic_socketbuf<SocketTraits>::read(char_type* s, std::streamsize n)
 	{
 		std::streamsize got, result{0};
@@ -327,7 +325,7 @@ namespace swoope {
 	}
 
 	template <class SocketTraits>
-	inline std::streamsize
+	std::streamsize
 	basic_socketbuf<SocketTraits>::write(const char_type* s,
 						std::streamsize n)
 	{
@@ -343,7 +341,7 @@ namespace swoope {
 	}
 
 	template <class SocketTraits>
-	inline void
+	void
 	swap(basic_socketbuf<SocketTraits>& a,
 		basic_socketbuf<SocketTraits>& b)
 	{
@@ -351,8 +349,7 @@ namespace swoope {
 	}
 
 	template <class SocketTraits>
-	inline
-	basic_socketbuf_base<SocketTraits>::basic_socketbuf_base() :
+		basic_socketbuf_base<SocketTraits>::basic_socketbuf_base() :
 		socket_(SocketTraits::invalid()),
 		buf_(),
 		base_(),
@@ -363,7 +360,7 @@ namespace swoope {
 	}
 
 	template <class SocketTraits>
-	inline void
+	void
 	basic_socketbuf_base<SocketTraits>::swap(basic_socketbuf_base& rhs)
 	{
 		using std::swap;
@@ -376,7 +373,7 @@ namespace swoope {
 	}
 
 	template <class SocketTraits>
-	inline void
+	void
 	swap(basic_socketbuf_base<SocketTraits>& a,
 		basic_socketbuf_base<SocketTraits>& b)
 	{

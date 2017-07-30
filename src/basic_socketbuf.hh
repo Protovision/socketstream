@@ -17,14 +17,16 @@ namespace swoope {
 
 	template <class SocketTraits>
 	struct basic_socketbuf_base {
+		typedef std::streambuf::char_type char_type;
+
 		/* Socket handle */
 		typename SocketTraits::socket_type socket_;
 
 		/* Buffer used for unbuffered I/O */
-		char buf_[1];
+		char_type buf_[1];
 
 		/* Start of buffer */
-		std::shared_ptr<char> base_;
+		std::shared_ptr<char_type> base_;
 
 		std::streamsize
 			gasize_, /* get area size */
@@ -51,6 +53,11 @@ namespace swoope {
 	public:
 		typedef SocketTraits socket_traits;
 		typedef typename socket_traits::socket_type socket_type;
+		using std::streambuf::char_type;
+		using std::streambuf::traits_type;
+		using std::streambuf::int_type;
+		using std::streambuf::pos_type;
+		using std::streambuf::off_type;
 
 		basic_socketbuf();
 		basic_socketbuf(basic_socketbuf&& rhs);
