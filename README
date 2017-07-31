@@ -10,7 +10,8 @@ The following classes are defined:
 		An std::iostream derived class that implements high-level 
 		stream input/output on a swoope::socketbuf.
 
-socketstream works with POSIX and Windows.
+socketstream works with POSIX and Windows. Compatible with C++03,
+move semantics enabled for C++11.
 
 See example.cc for an example that makes a simple HTTP request.
 
