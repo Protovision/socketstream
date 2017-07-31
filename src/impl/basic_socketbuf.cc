@@ -66,12 +66,12 @@ namespace swoope {
 	template <class SocketTraits>
 	basic_socketbuf<SocketTraits>*
 	basic_socketbuf<SocketTraits>::
-	open(socket_type socket, std::ios_base::openmode mode)
+	open(socket_type socket, std::ios_base::openmode m)
 	{
 		if (is_open() != false) return 0;
 		if (socket == this->__socketbuf_base_type::socket) return 0;
 		this->__socketbuf_base_type::socket = socket;
-		this->mode = mode;
+		this->mode = m;
 		this->__socketbuf_base_type::is_open = true;
 		return this;
 	}
@@ -80,10 +80,10 @@ namespace swoope {
 	basic_socketbuf<SocketTraits>*
 	basic_socketbuf<SocketTraits>::
 	open(const std::string& host, const std::string& service,
-					std::ios_base::openmode mode)
+					std::ios_base::openmode m)
 	{
 		if (is_open() != false) return 0;
-		return open(socket_traits_type::open(host, service), mode);
+		return open(socket_traits_type::open(host, service), m);
 	}
 
 	template <class SocketTraits>
@@ -231,7 +231,7 @@ namespace swoope {
 			std::ldiv_t d((std::div(static_cast<long int>(n),
 					static_cast<long int>(this->pasize))));
 			if (d.quot > 0) {
-				d.quot *= this->pasize;
+				d.quot *= static_cast<long int>(this->pasize);
 				put = write(s, d.quot);
 				if (put < d.quot) return put;
 				s += put;
