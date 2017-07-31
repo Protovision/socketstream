@@ -19,60 +19,63 @@ namespace swoope {
 	struct native_socket_traits {
 		typedef int socket_type;
 	
-		enum class shutdown_mode {
-			read = SHUT_RD,
-			write = SHUT_WR,
-			rdwr = SHUT_RDWR
-		};
-
 		static socket_type invalid()
 		{
-			return std::move(-1);
+			return static_cast<socket_type>(-1);
 		}
 
 		static socket_type open(const std::string& host,
 					const std::string& service)
 		{
 			using std::swap;
-			addrinfo *ai, hints{};
-			socket_type result{std::move(invalid())};
+			addrinfo *ai, hints = addrinfo();
+			socket_type result((invalid()));
 
 			hints.ai_family = AF_UNSPEC;
 			hints.ai_socktype = SOCK_STREAM;
 			hints.ai_protocol = IPPROTO_TCP;
 			if (::getaddrinfo(host.c_str(), service.c_str(),
 							&hints, &ai) != 0)
-				return std::move(result);
-			socket_type socket{std::move(::socket(ai->ai_family,
+				return result;
+			socket_type socket((::socket(ai->ai_family,
 							ai->ai_socktype,
-							ai->ai_protocol))};
+							ai->ai_protocol)));
 			if (socket != result && ::connect(socket, ai->ai_addr,
 							ai->ai_addrlen) == 0)
 				swap(result, socket);
 			::freeaddrinfo(ai);
-			return std::move(result);
+			return result;
 		}
 
-		static std::streamsize read(socket_type& socket,
+		static std::streamsize read(socket_type socket,
 						void* buf,
 						std::streamsize n)
 		{
 			return ::recv(socket, buf, n, 0);
 		}
 
-		static std::streamsize write(socket_type& socket,
+		static std::streamsize write(socket_type socket,
 						const void* buf,
 						std::streamsize n)
 		{
 			return ::send(socket, buf, n, 0);
 		}
 
-		static int shutdown(socket_type& socket, shutdown_mode how)
+		static int shutdown(socket_type socket, std::ios_base::
+							openmode how)
 		{
-			return ::shutdown(socket, (int)how);
+			int result(-1);
+
+			if (how == (std::ios_base::in | std::ios_base::out))
+				result = ::shutdown(socket, SHUT_RDWR);
+			else if (how == std::ios_base::out)
+				result = ::shutdown(socket, SHUT_WR);
+			else if (how == std::ios_base::in)
+				result = ::shutdown(socket, SHUT_RD);
+			return result;
 		}
 
-		static int close(socket_type& socket)
+		static int close(socket_type socket)
 		{
 			return ::close(socket);
 		}

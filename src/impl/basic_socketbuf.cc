@@ -3,7 +3,7 @@
  * Author: Mark Swoope
  * Date: Jul 2017
  */
-#include <iostream>
+
 namespace swoope {
 
 	template <class SocketTraits>
@@ -14,6 +14,7 @@ namespace swoope {
 	{
 	}
 
+#if __cplusplus >= 201103L
 	template <class SocketTraits>
 	basic_socketbuf<SocketTraits>::
 	basic_socketbuf(basic_socketbuf&& rhs) :
@@ -22,6 +23,7 @@ namespace swoope {
 	{
 		swap(rhs);
 	}
+#endif
 
 	template <class SocketTraits>
 	basic_socketbuf<SocketTraits>::
@@ -32,18 +34,15 @@ namespace swoope {
 		} catch (...) {}
 	}
 
+#if __cplusplus >= 201103L
 	template <class SocketTraits>
 	basic_socketbuf<SocketTraits>&
 	basic_socketbuf<SocketTraits>::
 	operator=(basic_socketbuf&& rhs)
 	{
-		basic_socketbuf temp{*this};
-
-		temp.close();
-		temp.base.reset();
-		temp.swap(rhs);
-		swap(temp);
-		return *this;
+		close();
+		this->reset_base(0, false);
+		swap(rhs);
 	}
 
 	template <class SocketTraits>
@@ -54,6 +53,7 @@ namespace swoope {
 		__streambuf_type::swap(rhs);
 		__socketbuf_base_type::swap(rhs);
 	}
+#endif
 
 	template <class SocketTraits>
 	bool
@@ -66,13 +66,11 @@ namespace swoope {
 	template <class SocketTraits>
 	basic_socketbuf<SocketTraits>*
 	basic_socketbuf<SocketTraits>::
-	open(socket_type&& socket, std::ios_base::openmode mode)
+	open(socket_type socket, std::ios_base::openmode mode)
 	{
-		using std::swap;
-
-		if (is_open() != false) return nullptr;
-		if (socket == this->socket) return nullptr;
-		swap(this->socket, socket);
+		if (is_open() != false) return 0;
+		if (socket == this->__socketbuf_base_type::socket) return 0;
+		this->__socketbuf_base_type::socket = socket;
 		this->mode = mode;
 		this->__socketbuf_base_type::is_open = true;
 		return this;
@@ -84,37 +82,21 @@ namespace swoope {
 	open(const std::string& host, const std::string& service,
 					std::ios_base::openmode mode)
 	{
-		if (is_open() != false) return nullptr;
-		return open(std::move(socket_traits_type::
-					open(host, service)), mode);
+		if (is_open() != false) return 0;
+		return open(socket_traits_type::open(host, service), mode);
 	}
 
 	template <class SocketTraits>
 	basic_socketbuf<SocketTraits>*
 	basic_socketbuf<SocketTraits>::shutdown(std::ios_base::openmode m)
 	{
-		typedef typename socket_traits_type::shutdown_mode
-							shutdown_mode;
+		basic_socketbuf* result((this));
 
-		basic_socketbuf* result{this};
-		static const std::unordered_map<int, shutdown_mode> modes{
-			{ static_cast<int>(std::ios_base::in | std::ios_base::
-						out), shutdown_mode::rdwr },
-			{ static_cast<int>(std::ios_base::out), 
-					shutdown_mode::write },
-			{ static_cast<int>(std::ios_base::in), shutdown_mode::
-									read }
-		};
-		typename std::unordered_map<int, shutdown_mode>::const_iterator
-									found;
-
-		if (is_open() == false) return nullptr;
-		found = modes.find(static_cast<int>(m));
-		if (found == modes.end()) return nullptr;
-		if (sync() == -1) result = nullptr;
-		if (socket_traits_type::shutdown(this->socket,
-						found->second) != 0)
-			result = nullptr;
+		if (is_open() == false) return 0;
+		if (sync() == -1) result = 0;
+		if (socket_traits_type::shutdown(this->__socketbuf_base_type::
+							socket, m) != 0)
+			result = 0;
 		return result;
 	}
 
@@ -123,26 +105,27 @@ namespace swoope {
 	basic_socketbuf<SocketTraits>::close()
 	{
 		using std::swap;
-		basic_socketbuf* result{this};
-		socket_type invalid{std::move(socket_traits_type::invalid())};
+		basic_socketbuf* result((this));
+		socket_type invalid((socket_traits_type::invalid()));
 
-		if (is_open() == false) return nullptr;
-		if (sync() == -1) result = nullptr;
-		if (socket_traits_type::close(this->socket) == -1) 
-			result = nullptr;
-		swap(this->socket, invalid);	
-		this->setg(nullptr, nullptr, nullptr);
-		this->setp(nullptr, nullptr);
+		if (is_open() == false) return 0;
+		if (sync() == -1) result = 0;
+		if (socket_traits_type::close(this->__socketbuf_base_type::
+								socket) != 0)
+			result = 0;
+		swap(this->__socketbuf_base_type::socket, invalid);	
+		this->setg(0, 0, 0);
+		this->setp(0, 0);
 		this->__socketbuf_base_type::is_open = false;
 		return result;
 	}
 
 	template <class SocketTraits>
-	typename basic_socketbuf<SocketTraits>::socket_type*
+	typename basic_socketbuf<SocketTraits>::socket_type
 	basic_socketbuf<SocketTraits>::
-	rdsocket()
+	socket()
 	{
-		return std::addressof(this->socket);
+		return this->__socketbuf_base_type::socket;
 	}
 
 	template <class SocketTraits>
@@ -150,23 +133,21 @@ namespace swoope {
 	basic_socketbuf<SocketTraits>::
 	setbuf(char_type* s, std::streamsize n)
 	{
-		auto nop_deleter = [](char_type*){};
-
-		if (s != nullptr) {
-			if (n < 1) return nullptr;
-			this->base.reset(s, nop_deleter);
+		if (s != 0) {
+			if (n < 1) return 0;
+			this->reset_base(s, false);
 		} else {
 			if (n <= 1) {
-				this->base.reset(std::addressof(
-						this->buf[0]), nop_deleter);
+				this->reset_base(&this->buf[0], false);
 				n = 1;
 			} else {
-				this->base.reset(new char_type[static_cast<
-							std::size_t>(n)]);
+				this->reset_base(new char_type[static_cast<
+						std::size_t>(n)], true);
 			}
 		}
 
-		auto d = std::div(n, std::streamsize(2));
+		std::ldiv_t d((std::ldiv(static_cast<long int>(n),
+					static_cast<long int>(2))));
 		this->gasize = d.quot + d.rem;
 		this->pasize = d.quot;
 		return this;
@@ -177,10 +158,10 @@ namespace swoope {
 	basic_socketbuf<SocketTraits>::
 	sync()
 	{
-		int_type eof{traits_type::eof()};
-		int result{0};
+		int_type eof((traits_type::eof()));
+		int result(0);
 		
-		if (this->pptr() != nullptr)
+		if (this->pptr() != 0)
 			result = (overflow(eof) != eof) ? 0 : -1;
 		return result;
 	}
@@ -191,18 +172,18 @@ namespace swoope {
 	xsgetn(char_type* s, std::streamsize n)
 	{
 		
-		std::streamsize result{0}, avail;
+		std::streamsize result(0), avail;
 
 		if (is_open() == false) return result;
 		if ((this->mode & std::ios_base::in) == 0) return result;
-		if (this->gptr() == nullptr) init_io();
+		if (this->gptr() == 0) init_io();
 		avail = this->egptr() - this->gptr();
 		if (avail >= n) {
-			std::copy_n(this->gptr(), n, s);
+			std::copy(this->gptr(), this->gptr() + n, s); 
 			this->gbump(static_cast<std::size_t>(n));
 			result = n;
 		} else {
-			s = std::copy_n(this->gptr(), avail, s);
+			s = std::copy(this->gptr(), this->gptr() + avail, s);
 			this->gbump(static_cast<std::size_t>(avail));
 			result = avail + read(s, n - avail);
 		}
@@ -214,12 +195,12 @@ namespace swoope {
 	basic_socketbuf<SocketTraits>::
 	underflow()
 	{
-		int_type result{traits_type::eof()};
+		int_type result((traits_type::eof()));
 		std::streamsize got;
 
 		if (is_open() == false) return result;
 		if ((this->mode & std::ios_base::in) == 0) return result;
-		if (this->gptr() == nullptr) init_io();
+		if (this->gptr() == 0) init_io();
 		got = read(this->eback(), this->gasize);
 		if (got > 0) {
 			this->setg(this->eback(), this->eback(), 
@@ -234,20 +215,21 @@ namespace swoope {
 	basic_socketbuf<SocketTraits>::
 	xsputn(const char_type* s, std::streamsize n)
 	{
-		int_type eof{traits_type::eof()};
-		std::streamsize result{0}, pending, put;
+		int_type eof((traits_type::eof()));
+		std::streamsize result(0), pending, put;
 
 		if (is_open() == false) return result;
 		if ((this->mode & std::ios_base::out) == 0) return result;
-		if (this->pptr() == nullptr) init_io();
+		if (this->pptr() == 0) init_io();
 		pending = this->pptr() - this->pbase();
 		if (pending + n <= this->pasize) {
-			std::copy_n(s, n, this->pptr());
+			std::copy(s, s + n, this->pptr());
 			this->pbump(static_cast<std::size_t>(n));
 			result += n;	
 		} else {
 			if (overflow(eof) != 0) return result;
-			auto d = std::div(n, std::streamsize(this->pasize));
+			std::ldiv_t d((std::div(static_cast<long int>(n),
+					static_cast<long int>(this->pasize))));
 			if (d.quot > 0) {
 				d.quot *= this->pasize;
 				put = write(s, d.quot);
@@ -255,7 +237,7 @@ namespace swoope {
 				s += put;
 				result += put;
 			}
-			std::copy_n(s, d.rem, this->pbase());
+			std::copy(s, s + d.rem, this->pbase());
 			this->pbump(static_cast<std::size_t>(d.rem));
 			result += d.rem;
 		}
@@ -267,20 +249,20 @@ namespace swoope {
 	basic_socketbuf<SocketTraits>::
 	overflow(int_type c)
 	{
-		int_type result{traits_type::eof()};
+		int_type result((traits_type::eof()));
 		std::streamsize put, pending;
 
 		if (is_open() == false) return result;
 		if ((this->mode & std::ios_base::out) == 0) return result;
-		if (this->pptr() == nullptr) init_io();
+		if (this->pptr() == 0) init_io();
 		if (this->pptr() < this->epptr() && c != result)
 			return this->sputc(traits_type::to_char_type(c));
 		if (this->pbase() == this->epptr()) {
 			if (c == result) {
 				result = traits_type::not_eof(c);
 			} else {
-				char_type tmp{traits_type::to_char_type(c)};
-				if (write(std::addressof(tmp), 1) == 1)
+				char_type tmp((traits_type::to_char_type(c)));
+				if (write(&tmp, 1) == 1)
 					result = traits_type::not_eof(c);
 			}
 		} else {
@@ -304,23 +286,15 @@ namespace swoope {
 	}
 
 	template <class SocketTraits>
-	basic_socketbuf<SocketTraits>::
-	basic_socketbuf(const basic_socketbuf& rhs) :
-	__streambuf_type(rhs),
-	__socketbuf_base_type(rhs)
-	{
-	}
-
-	template <class SocketTraits>
 	void
 	basic_socketbuf<SocketTraits>::
 	init_io()
 	{
 		char_type *gbase, *pbase;
 
-		if (this->base.get() == nullptr)
-			this->setbuf(nullptr, BUFSIZ);
-		gbase = this->base.get();
+		if (this->base == 0)
+			this->setbuf(0, BUFSIZ);
+		gbase = this->base;
 		pbase = gbase + this->gasize;
 		if ((this->mode & std::ios_base::in) != 0)
 			this->setg(gbase, gbase, gbase);
@@ -333,9 +307,10 @@ namespace swoope {
 	basic_socketbuf<SocketTraits>::
 	read(char_type* s, std::streamsize n)
 	{
-		std::streamsize got, result{0};
+		std::streamsize got, result(0);
 
-		got = socket_traits_type::read(this->socket, s, n);
+		got = socket_traits_type::read(this->__socketbuf_base_type::
+								socket, s, n);
 		if (got > 0) result = got;
 		return result;
 	}
@@ -345,11 +320,12 @@ namespace swoope {
 	basic_socketbuf<SocketTraits>::
 	write(const char_type* s, std::streamsize n)
 	{
-		std::streamsize put, result{0};
+		std::streamsize put, result(0);
 
 		while (result < n) {
-			put = socket_traits_type::write(this->socket, s,
-							n - result);
+			put = socket_traits_type::write(
+						this->__socketbuf_base_type::
+							socket, s, n - result);
 			if (put < 0) break;
 			s += put;
 			result += put;
@@ -358,26 +334,27 @@ namespace swoope {
 	}
 
 	template <class SocketTraits>
-	void
-	swap(basic_socketbuf<SocketTraits>& a, basic_socketbuf<
-						SocketTraits>& b)
-	{
-		a.swap(b);
-	}
-
-	template <class SocketTraits>
 	basic_socketbuf_base<SocketTraits>::
 	basic_socketbuf_base() :
-	socket(std::move(SocketTraits::invalid())),
+	socket(SocketTraits::invalid()),
 	buf(),
-	base(nullptr),
+	base(0),
 	gasize(0),
 	pasize(0),
 	mode(),
-	is_open(false)
+	is_open(false),
+	auto_delete_base(false)
 	{
 	}
+	
+	template <class SocketTraits>
+	basic_socketbuf_base<SocketTraits>::
+	~basic_socketbuf_base()
+	{
+		reset_base(0, false);
+	}
 
+#if __cplusplus >= 201103L
 	template <class SocketTraits>
 	void
 	basic_socketbuf_base<SocketTraits>::
@@ -391,14 +368,29 @@ namespace swoope {
 		swap(pasize, rhs.pasize);
 		swap(mode, rhs.mode);
 		swap(is_open, rhs.is_open);
+		swap(auto_delete_base, rhs.auto_delete_base);
+	}
+#endif
+
+	template <class SocketTraits>
+	void
+	basic_socketbuf_base<SocketTraits>::
+	release_base()
+	{
+		base = 0;
+		auto_delete_base = false;
 	}
 
 	template <class SocketTraits>
 	void
-	swap(basic_socketbuf_base<SocketTraits>& a, basic_socketbuf_base<
-							SocketTraits>& b)
+	basic_socketbuf_base<SocketTraits>::
+	reset_base(char* p, bool auto_delete)
 	{
-		a.swap(b);
+		if (base != 0 && auto_delete_base == true) {
+			delete[] base;
+		}
+		base = p;
+		auto_delete_base = auto_delete;
 	}
 
 }

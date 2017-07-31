@@ -1,7 +1,6 @@
 #include "socketstream.hh"
 #include <iostream>
 #include <string>
-#include <memory>
 
 int main()
 {
@@ -17,7 +16,8 @@ int main()
 	client.flush();
 	client.shutdown(swoope::socketstream::out);
 	while (std::getline(client, line)) {
-		if (line.back() == '\r') line.pop_back();
+		if (line[line.size() - 1] == '\r')
+			line.erase(line.size() - 1);
 		std::cout << line << std::endl;
 	}
 	return 0;

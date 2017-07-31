@@ -2,7 +2,7 @@
 #define SWOOPE_NATIVE_SOCKET_TRAITS_HH
 
 /*
- * native_socket_traits.hh"
+ * native_socket_traits.hh
  * Author: Mark Swoope
  * Date: July 2017
  */

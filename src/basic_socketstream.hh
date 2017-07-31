@@ -30,18 +30,18 @@ namespace swoope {
 		typedef typename traits_type::off_type off_type;
 
 		basic_socketstream() :
-			__iostream_type(std::addressof(buf)),
+			__iostream_type(&buf),
 			buf()
 		{
 		}
 
-		explicit basic_socketstream(socket_type&& s,
+		explicit basic_socketstream(socket_type s,
 				std::ios_base::openmode mode =
 				std::ios_base::in | std::ios_base::out) :
-			__iostream_type(std::addressof(buf)),
+			__iostream_type(&buf),
 			buf()
 		{
-			open(std::move(s), mode);
+			open(s, mode);
 		}
 
 		explicit basic_socketstream(
@@ -49,22 +49,25 @@ namespace swoope {
 				const std::string& service,
 				std::ios_base::openmode mode =
 				std::ios_base::in | std::ios_base::out) :
-			__iostream_type(std::addressof(buf)),
+			__iostream_type(&buf),
 			buf()
 		{
 			open(host, service, mode);
 		}
 
+#if __cplusplus >= 201103L
 		basic_socketstream(const basic_socketstream&) = delete;
 
 		basic_socketstream(basic_socketstream&& rhs) :
-			__iostream_type(std::addressof(buf)),
+			__iostream_type(&buf),
 			buf(std::move(rhs.buf))
 		{
 		}
+#endif
 
-		virtual ~basic_socketstream() = default;
+		virtual ~basic_socketstream() {}
 
+#if __cplusplus >= 201103L
 		basic_socketstream& operator=(
 				const basic_socketstream&) = delete;
 
@@ -72,7 +75,7 @@ namespace swoope {
 		{
 			this->__iostream_type::move(rhs);
 			buf = std::move(rhs.buf);
-			this->set_rdbuf(std::addressof(buf));
+			this->set_rdbuf(&buf);
 			return *this;
 		}
 
@@ -81,11 +84,11 @@ namespace swoope {
 			this->__iostream_type::swap(rhs);
 			buf.swap(rhs.buf);
 		}
+#endif
 
 		__socketbuf_type* rdbuf() const
 		{
-			return const_cast<__socketbuf_type*>(
-					std::addressof(buf));
+			return const_cast<__socketbuf_type*>(&buf);
 		}
 
 		bool is_open() const
@@ -93,10 +96,10 @@ namespace swoope {
 			return rdbuf()->is_open();
 		}
 
-		void open(socket_type&& s, std::ios_base::openmode mode =
+		void open(socket_type s, std::ios_base::openmode mode =
 					std::ios_base::in | std::ios_base::out)
 		{
-			if (rdbuf()->open(std::move(s), mode) == nullptr)
+			if (rdbuf()->open(s, mode) == 0)
 				this->setstate(std::ios_base::failbit);
 			else
 				this->clear();
@@ -106,7 +109,7 @@ namespace swoope {
 					std::ios_base::openmode mode =
 					std::ios_base::in | std::ios_base::out)
 		{
-			if (rdbuf()->open(host, service, mode) == nullptr)
+			if (rdbuf()->open(host, service, mode) == 0)
 				this->setstate(std::ios_base::failbit);
 			else
 				this->clear();
@@ -114,13 +117,13 @@ namespace swoope {
 
 		void shutdown(std::ios_base::openmode how)
 		{
-			if (rdbuf()->shutdown(how) == nullptr)
+			if (rdbuf()->shutdown(how) == 0)
 				this->setstate(std::ios_base::failbit);
 		}
 
 		void close()
 		{
-			if (rdbuf()->close() == nullptr)
+			if (rdbuf()->close() == 0)
 				this->setstate(std::ios_base::failbit);
 		}
 
@@ -128,12 +131,14 @@ namespace swoope {
 		__socketbuf_type buf;
 	};
 
+#if __cplusplus >= 201103L
 	template <class SocketTraits>
 	inline void swap(basic_socketstream<SocketTraits>& a,
 			basic_socketstream<SocketTraits>& b)
 	{
 		a.swap(b);
 	}
+#endif
 
 }
 

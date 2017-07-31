@@ -19,41 +19,35 @@ namespace swoope {
 
 		typedef SOCKET socket_type;
 
-		enum class shutdown_mode {
-			read = SD_RECEIVE,
-			write = SD_SEND,
-			rdwr = SD_BOTH
-		};
-
 		static socket_type invalid()
 		{
-			return std::move(INVALID_SOCKET);
+			return INVALID_SOCKET;
 		}
 
 		static socket_type open(const std::string& host,
 					const std::string& service)
 		{
 			using std::swap;
-			addrinfo *ai, hints{};
-			socket_type result{std::move(invalid())};
+			addrinfo *ai, hints = addrinfo();
+			socket_type result((invalid()));
 
 			hints.ai_family = AF_UNSPEC;
 			hints.ai_socktype = SOCK_STREAM;
 			hints.ai_protocol = IPPROTO_TCP;
 			if (::getaddrinfo(host.c_str(), service.c_str(),
 							&hints, &ai) != 0)
-				return std::move(result);
-			socket_type socket{std::move(::socket(ai->ai_family,
+				return result;
+			socket_type socket((::socket(ai->ai_family,
 							ai->ai_socktype,
-							ai->ai_protocol))};
+							ai->ai_protocol)));
 			if (socket != result && ::connect(socket, ai->ai_addr,
 					static_cast<int>(ai->ai_addrlen)) == 0)
 				swap(result, socket);
 			::freeaddrinfo(ai);
-			return std::move(result);
+			return result;
 		}
 
-		static std::streamsize read(socket_type& socket,
+		static std::streamsize read(socket_type socket,
 						void* buf,
 						std::streamsize n)
 		{
@@ -61,7 +55,7 @@ namespace swoope {
 					static_cast<int>(n), 0);
 		}
 
-		static std::streamsize write(socket_type& socket,
+		static std::streamsize write(socket_type socket,
 						const void* buf,
 						std::streamsize n)
 		{
@@ -69,14 +63,24 @@ namespace swoope {
 						static_cast<int>(n), 0);
 		}
 
-		static int shutdown(socket_type& socket,
-					shutdown_mode how)
+		static int shutdown(socket_type socket, std::ios_base::
+							openmode how)
 		{
-			return (::shutdown(socket,
-					static_cast<int>(how)) == 0) ? 0 : -1;
+			int result(-1);
+
+			if (how == (std::ios_base::in | std::ios_base::out))
+				result = ::shutdown(socket,
+						SD_BOTH) == 0 ? 0 : -1;
+			else if (how == std::ios_base::out)
+				result = ::shutdown(socket,
+						SD_SEND) == 0 ? 0 : -1;
+			else if (how == std::ios_base::in)
+				result = ::shutdown(socket,
+						SD_RECEIVE) == 0 ? 0 : -1;
+			return result;
 		}
 
-		static int close(socket_type& socket)
+		static int close(socket_type socket)
 		{
 			return (::closesocket(socket) == 0) ? 0 : -1;
 		}
