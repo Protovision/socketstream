@@ -1,6 +1,8 @@
 #ifndef SWOOPE_SOCKETSTREAM_HH
 #define SWOOPE_SOCKETSTREAM_HH
 
+#define SWOOPE_SOCKETSTREAM_VERSION 170731
+
 #include "src/native_socket_traits.hh"
 #include "src/basic_socketbuf.hh"
 #include "src/basic_socketstream.hh"
