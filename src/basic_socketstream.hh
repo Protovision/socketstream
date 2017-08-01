@@ -14,7 +14,7 @@ namespace swoope {
 
 	template <class SocketTraits>
 	class basic_socketstream :
-	public  std::iostream {
+	public std::iostream {
 	public:
 		typedef basic_socketbuf<SocketTraits> __socketbuf_type;
 		typedef std::iostream __iostream_type;
@@ -59,9 +59,10 @@ namespace swoope {
 		basic_socketstream(const basic_socketstream&) = delete;
 
 		basic_socketstream(basic_socketstream&& rhs) :
-			__iostream_type(&buf),
+			__iostream_type(std::move(rhs)),
 			buf(std::move(rhs.buf))
 		{
+			this->set_rdbuf(&buf);
 		}
 #endif
 
@@ -73,9 +74,8 @@ namespace swoope {
 
 		basic_socketstream& operator=(basic_socketstream&& rhs)
 		{
-			this->__iostream_type::move(rhs);
+			this->__iostream_type::operator=(std::move(rhs));
 			buf = std::move(rhs.buf);
-			this->set_rdbuf(&buf);
 			return *this;
 		}
 
