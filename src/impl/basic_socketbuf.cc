@@ -43,6 +43,7 @@ namespace swoope {
 		close();
 		this->reset_base(0, false);
 		swap(rhs);
+		return *this;
 	}
 
 	template <class SocketTraits>
