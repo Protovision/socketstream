@@ -91,14 +91,52 @@ namespace swoope {
 		void swap(basic_socketbuf& rhs);
 #endif
 		bool is_open() const;
+		/* 
+		 * Associate existing socket descriptor s to this streambuf. Returns this
+		 * on success.
+		 */
 		basic_socketbuf* open(socket_type s,
 					std::ios_base::openmode mode);
+		/* 
+		 * Create an underlying TCP/IP socket and connect it to the specified host on
+		 * the specified port or service. Returns this on success.
+		 */
 		basic_socketbuf* open(const std::string& host,
 					const std::string& service,
 					std::ios_base::openmode mode);
+		/* 
+		 * Create an underlying TCP/IP socket, bind it to the specified port or
+		 * service, then make it listen for connections with the specified backlog.
+		 * Returns this on success.
+		 */
+		basic_socketbuf* open(const std::string& service, int backlog);
+		/*
+		 * Accepts a pending connection from this socket and stores the resulting 
+		 * connected socket into socketbuf_result. The string representation of 
+		 * the connected socket's address will be stored in address_result. Returns
+		 * this on success.
+		 */
+		basic_socketbuf* accept(basic_socketbuf& d_socketbuf);
+		/*
+		 * Returns a string representing the address to which the socket is
+		 * bound.
+		 */
+		std::string local_address() const;
+		/*
+		 * Returns a string representing the address of the peer that is connected
+		 * to the socket.
+		 */
+		std::string remote_address() const;
+		/*
+		 * Shutdowns down the socket for input, output, or both. Possible values
+		 * for how are: std::ios_base::in, std::ios_base::out, or
+		 * std::ios_base::in | std::ios_base::out. Returns this on success.
+		 */
 		basic_socketbuf* shutdown(std::ios_base::openmode how);
+		/* Closes the socket. Returns this on success. */
 		basic_socketbuf* close();
-		socket_type socket();
+		/* Returns the underlying socket descriptor. */
+		socket_type socket() const;
 	protected:
 		basic_socketbuf* setbuf(char_type* s, std::streamsize n);
 		int sync();
@@ -131,3 +169,5 @@ namespace swoope {
 #include "impl/basic_socketbuf.cc"
 
 #endif
+
+

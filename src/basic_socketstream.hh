@@ -115,6 +115,29 @@ namespace swoope {
 				this->clear();
 		}
 
+		void open(const std::string& service, int backlog)
+		{
+			if (rdbuf()->open(service, backlog) == 0)
+				this->setstate(std::ios_base::failbit);
+			else
+				this->clear();
+		}
+
+		void accept(basic_socketstream& d_socketstream)
+		{
+			rdbuf()->accept(*(d_socketstream.rdbuf()));
+		}
+
+		std::string local_address() const
+		{
+			return rdbuf()->local_address();
+		}
+
+		std::string remote_address() const
+		{
+			return rdbuf()->remote_address();
+		}
+
 		void shutdown(std::ios_base::openmode how)
 		{
 			if (rdbuf()->shutdown(how) == 0)

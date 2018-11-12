@@ -86,7 +86,51 @@ namespace swoope {
 		if (is_open() != false) return 0;
 		return open(socket_traits_type::open(host, service), m);
 	}
+	
+	template <class SocketTraits>
+	basic_socketbuf<SocketTraits>*
+	basic_socketbuf<SocketTraits>::
+	open(const std::string& service, int backlog)
+	{
+		if (is_open() != false) return 0;
+		return open(socket_traits_type::open(service, backlog), 
+				std::ios_base::in | std::ios_base::out);
+	}
 
+	template <class SocketTraits>
+	basic_socketbuf<SocketTraits>*
+	basic_socketbuf<SocketTraits>::
+	accept(basic_socketbuf& d_socketbuf)
+	{
+		socket_type invalid_socket(socket_traits_type::invalid()),
+						server_socket(socket()),
+						client_socket;
+		if (d_socketbuf.is_open() != false)
+			d_socketbuf.close();
+		client_socket = socket_traits_type::accept(server_socket);
+		if (client_socket == invalid_socket) return 0;
+		if (d_socketbuf.open(client_socket, std::ios_base::in |
+						std::ios_base::out) == 0)
+			return 0;
+		return this;
+	}
+
+	template <class SocketTraits>
+	std::string
+	basic_socketbuf<SocketTraits>::
+	local_address() const
+	{
+		return socket_traits_type::local_address(socket());
+	}
+
+	template <class SocketTraits>
+	std::string
+	basic_socketbuf<SocketTraits>::
+	remote_address() const
+	{
+		return socket_traits_type::remote_address(socket());
+	}
+	
 	template <class SocketTraits>
 	basic_socketbuf<SocketTraits>*
 	basic_socketbuf<SocketTraits>::shutdown(std::ios_base::openmode m)
@@ -124,7 +168,7 @@ namespace swoope {
 	template <class SocketTraits>
 	typename basic_socketbuf<SocketTraits>::socket_type
 	basic_socketbuf<SocketTraits>::
-	socket()
+	socket() const
 	{
 		return this->__socketbuf_base_type::socket;
 	}
