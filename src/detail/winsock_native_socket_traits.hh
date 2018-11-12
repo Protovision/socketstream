@@ -87,26 +87,18 @@ namespace swoope {
 					SOCKADDR_STORAGE *ss)
 		{
 			std::string result;
+			socklen_t sslen(sizeof(*ss));
 			char addrbuf[64];
 
-			if (ss->ss_family == AF_INET) {
-				if (::InetNtop(ss->ss_family,
-					&((SOCKADDR_IN*)ss)->sin_addr,
+			if (::getnameinfo((const SOCKADDR*)ss,
+					sslen,
 					addrbuf,
-					sizeof(addrbuf)) == 0) {
-					return result;
-				}
-			} else if (ss->ss_family == AF_INET6) {
-				if (::InetNtop(ss->ss_family,
-					&((SOCKADDR_IN6*)ss)->sin6_addr,
-					addrbuf,
-					sizeof(addrbuf)) == 0) {
-					return result;
-				}
-			} else {
-				return result;
+					sizeof(addrbuf),
+					0,
+					0,
+					NI_NUMERICHOST) == 0) {
+				result = addrbuf;
 			}
-			result = addrbuf;
 			return result;
 		}
 	public:

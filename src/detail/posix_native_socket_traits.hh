@@ -90,26 +90,18 @@ namespace swoope {
 					sockaddr_storage *ss)
 		{
 			std::string result;
+			socklen_t sslen(sizeof(*ss));
 			char addrbuf[INET6_ADDRSTRLEN];
 
-			if (ss->ss_family == AF_INET) {
-				if (::inet_ntop(ss->ss_family,
-						&((sockaddr_in*)ss)->sin_addr,
+			if (::getnameinfo((const sockaddr*)ss,
+						sslen,
 						addrbuf,
-						sizeof(addrbuf)) == 0) {
-					return result;
-				}
-			} else if (ss->ss_family == AF_INET6) {
-				if (::inet_ntop(ss->ss_family,
-						&((sockaddr_in6*)ss)->sin6_addr,
-						addrbuf,
-						sizeof(addrbuf)) == 0) {
-					return result;
-				}
-			} else {
-				return result;
+						sizeof(addrbuf),
+						0,
+						0,
+						NI_NUMERICHOST) == 0) {
+				result = addrbuf;
 			}
-			result = addrbuf;
 			return result;
 
 		}
