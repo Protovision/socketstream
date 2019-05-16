@@ -15,3 +15,34 @@ move semantics enabled for C++11.
 
 Author: Mark Swoope
 Date: July 2017
+
+Compiling and running the examples:
+
+If you are using the Visual C++ compiler, the commands:
+
+cl /EHsc server_example.cc ws2_32.lib
+cl /EHsc client_example.cc ws2_32.lib
+
+should compile the example programs when issued from a Developer Command Prompt for VS.
+
+If you are using the MinGW compiler, then the commands would be:
+
+g++ -D _WIN32 -o server_example.exe server_example.cc -lws2_32
+g++ -D _WIN32 -o client_example.exe client_example.cc -lws2_32
+
+For Linux and Mac, the commands are:
+
+g++ -o server_example.exe server_example.cc
+g++ -o client_example.exe client_example.cc
+
+(.exe extention is optional for Linux and Mac)
+
+After compiling successfully, to test the programs first run:
+
+server_example.exe 6789
+
+in one terminal window, then run
+
+client_example.exe localhost 6789
+
+In another terminal window and begin entering lines of text into the client terminal window to see the server echo them back.
