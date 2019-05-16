@@ -7,6 +7,15 @@
  * Date: July 2017
  */
 
+#ifdef _WIN32_WINNT
+#if _WIN32_WINNT < 0x501
+#undef _WIN32_WINNT
+#define _WIN32_WINNT 0x501
+#endif
+#else
+#define _WIN32_WINNT 0x501
+#endif
+
 #include <Winsock2.h>
 #include <Ws2tcpip.h>
 
