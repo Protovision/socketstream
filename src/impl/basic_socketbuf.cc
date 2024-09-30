@@ -230,7 +230,13 @@ namespace swoope {
 		} else {
 			s = std::copy(this->gptr(), this->gptr() + avail, s);
 			this->gbump(static_cast<std::size_t>(avail));
-			result = avail + read(s, n - avail);
+			result = avail;
+			while (result < n) {
+				std::streamsize got = read(s, n - result);
+				if (got <= 0) break;
+				s += got;
+				result += got;
+			}
 		}
 		return result;
 	}
